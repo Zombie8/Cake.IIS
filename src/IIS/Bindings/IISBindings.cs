@@ -1,7 +1,4 @@
-﻿using Cake.IIS.Bindings;
-
-
-namespace Cake.IIS
+﻿namespace Cake.IIS.Bindings
 {
     public static class IISBindings
     {

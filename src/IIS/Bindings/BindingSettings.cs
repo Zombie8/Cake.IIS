@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Cake.IIS
+﻿namespace Cake.IIS.Bindings
 {
     /// <summary>
     /// Class to configure any type of IIS binding (secure or not).

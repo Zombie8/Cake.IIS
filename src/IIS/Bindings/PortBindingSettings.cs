@@ -1,6 +1,4 @@
-﻿
-
-namespace Cake.IIS.Bindings
+﻿namespace Cake.IIS.Bindings
 {
     /// <summary>
     /// Class to configure net.tcp binding.
