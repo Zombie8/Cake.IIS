@@ -1,13 +1,11 @@
-﻿#region Using Statements
-    using Cake.Core;
-    using Cake.Core.Annotations;
+﻿using Microsoft.Web.Administration;
 
-    using Microsoft.Web.Administration;
-#endregion
+using Cake.Core;
+using Cake.Core.Annotations;
+using Cake.IIS.Managers;
+using Cake.IIS.Settings;
 
-
-
-namespace Cake.IIS
+namespace Cake.IIS.Aliases
 {
     /// <summary>
     /// Contains aliases for working with IIS application pools.

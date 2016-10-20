@@ -1,10 +1,5 @@
-﻿#region Using Statements
-    using Cake.IIS.Tests;
-    using Microsoft.Web.Administration;
-    using Xunit;
-#endregion
-
-
+﻿using Microsoft.Web.Administration;
+using Xunit;
 
 namespace Cake.IIS.Tests
 {

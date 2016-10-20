@@ -1,26 +1,16 @@
-﻿namespace Cake.IIS
+﻿namespace Cake.IIS.Settings
 {
     public class WebFarmSettings
     {
-        #region Constructor (1)
-            public WebFarmSettings()
-            {
+        public WebFarmSettings()
+        {
 
-            }
-        #endregion
+        }
 
+        public string Name { get; set; }
 
+        public string[] Servers { get; set; }
 
-
-
-        #region Properties (3)
-            public string Name { get; set; }
-
-            public string[] Servers { get; set; }
-        
-
-
-            public bool Overwrite { get; set; }
-        #endregion
+        public bool Overwrite { get; set; }
     }
 }

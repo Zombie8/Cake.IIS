@@ -1,10 +1,6 @@
-﻿#region Using Statements
-    using Cake.IIS.Tests;
-    using Microsoft.Web.Administration;
-    using Xunit;
-#endregion
+﻿using Xunit;
 
-
+using Cake.IIS.Managers;
 
 namespace Cake.IIS.Tests
 {
@@ -39,8 +35,7 @@ namespace Cake.IIS.Tests
             Assert.Null(CakeHelper.GetWebFarm(settings.Name));
         }
 
-
-
+        [Fact]
         public void Should_Set_Server_Available()
         {
             // Arrange
@@ -55,6 +50,7 @@ namespace Cake.IIS.Tests
             Assert.True(manager.GetServerState(settings.Name, settings.Servers[0]) == "Avaiable");
         }
 
+        [Fact]
         public void Should_Set_Server_Unavailable()
         {
             // Arrange

@@ -1,4 +1,6 @@
-﻿namespace Cake.IIS
+﻿using Cake.IIS.Bindings;
+
+namespace Cake.IIS
 {
     /// <summary>
     /// Contains extension methods to configure bindings created by <see cref="BindingExtensions"/>

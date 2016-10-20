@@ -1,307 +1,288 @@
-﻿#region Using Statements
-    using System;
-    using System.Linq;
-    using System.IO;
-    using System.Threading;
+﻿using System;
+using System.Linq;
+using System.IO;
+using System.Threading;
 
-    using Cake.Core;
-    using Microsoft.Web.Administration;
+using Microsoft.Web.Administration;
+using NSubstitute;
 
-    using NSubstitute;
-#endregion
-
-
+using Cake.Core;
+using Cake.IIS.Bindings;
+using Cake.IIS.Managers;
+using Cake.IIS.Settings;
 
 namespace Cake.IIS.Tests
 {
     internal static class CakeHelper
     {
-        #region Functions (4)
-            //Cake
-            public static ICakeEnvironment CreateEnvironment()
-            {
-                var environment = Substitute.For<ICakeEnvironment>();
-                environment.WorkingDirectory = Directory.GetCurrentDirectory();
+        public static ICakeEnvironment CreateEnvironment()
+        {
+            var environment = Substitute.For<ICakeEnvironment>();
+            environment.WorkingDirectory = Directory.GetCurrentDirectory();
 
-                return environment;
-            }
+            return environment;
+        }
 
+        public static ApplicationPoolManager CreateApplicationPoolManager()
+        {
+            ApplicationPoolManager manager = new ApplicationPoolManager(CakeHelper.CreateEnvironment(), new DebugLog());
 
+            manager.SetServer();
 
-            //Managers
-            public static ApplicationPoolManager CreateApplicationPoolManager()
-            {
-                ApplicationPoolManager manager = new ApplicationPoolManager(CakeHelper.CreateEnvironment(), new DebugLog());
+            return manager;
+        }
 
-                manager.SetServer();
+        public static FtpsiteManager CreateFtpsiteManager()
+        {
+            FtpsiteManager manager = new FtpsiteManager(CakeHelper.CreateEnvironment(), new DebugLog());
 
-                return manager;
-            }
+            manager.SetServer();
 
-            public static FtpsiteManager CreateFtpsiteManager()
-            {
-                FtpsiteManager manager = new FtpsiteManager(CakeHelper.CreateEnvironment(), new DebugLog());
+            return manager;
+        }
 
-                manager.SetServer();
+        public static WebsiteManager CreateWebsiteManager()
+        {
+            WebsiteManager manager = new WebsiteManager(CakeHelper.CreateEnvironment(), new DebugLog());
 
-                return manager;
-            }
+            manager.SetServer();
 
-            public static WebsiteManager CreateWebsiteManager()
-            {
-                WebsiteManager manager = new WebsiteManager(CakeHelper.CreateEnvironment(), new DebugLog());
-
-                manager.SetServer();
-
-                return manager;
-            }
+            return manager;
+        }
         
-            public static WebFarmManager CreateWebFarmManager()
+        public static WebFarmManager CreateWebFarmManager()
+        {
+            WebFarmManager manager = new WebFarmManager(CakeHelper.CreateEnvironment(), new DebugLog());
+
+            manager.SetServer();
+
+            return manager;
+        }
+
+        public static ApplicationPoolSettings GetAppPoolSettings()
+        {
+            return new ApplicationPoolSettings
             {
-                WebFarmManager manager = new WebFarmManager(CakeHelper.CreateEnvironment(), new DebugLog());
+                Name = "Superman",
+                IdentityType = IdentityType.NetworkService,
+                Autostart = true,
+                MaxProcesses = 1,
+                Enable32BitAppOnWin64 = false,
 
-                manager.SetServer();
+                IdleTimeout = TimeSpan.FromMinutes(20),
+                ShutdownTimeLimit = TimeSpan.FromSeconds(90),
+                StartupTimeLimit = TimeSpan.FromSeconds(90),
 
-                return manager;
-            }
+                PingingEnabled = true,
+                PingInterval = TimeSpan.FromSeconds(30),
+                PingResponseTime = TimeSpan.FromSeconds(90),
+                Overwrite = false
+            };
+        }
 
-
-
-            //Settings
-            public static ApplicationPoolSettings GetAppPoolSettings()
+        public static WebsiteSettings GetWebsiteSettings()
+        {
+            WebsiteSettings settings = new WebsiteSettings
             {
-                return new ApplicationPoolSettings
+                Name = "Superman",
+                PhysicalDirectory = "./Test/",
+                ApplicationPool = CakeHelper.GetAppPoolSettings(),
+                ServerAutoStart = true,
+                Overwrite = false
+            };
+
+            settings.Binding = IISBindings.Http
+                .SetHostName("superman.web")
+                .SetIpAddress("*")
+                .SetPort(80);
+
+            return settings;
+        }
+
+        public static WebFarmSettings GetWebFarmSettings()
+        {
+            return new WebFarmSettings
+            {
+                Name = "Batman",
+                Servers = new string[] { "Gotham", "Metroplis" }
+            };
+        }
+
+        public static void CreateWebsite(WebsiteSettings settings)
+        {
+            WebsiteManager manager = CakeHelper.CreateWebsiteManager();
+
+            manager.Create(settings);
+        }
+
+        public static void DeleteWebsite(string name)
+        {
+            using (var server = new ServerManager())
+            {
+                var site = server.Sites.FirstOrDefault(x => x.Name == name);
+
+                if (site != null)
                 {
-                    Name = "Superman",
-                    IdentityType = IdentityType.NetworkService,
-                    Autostart = true,
-                    MaxProcesses = 1,
-                    Enable32BitAppOnWin64 = false,
-
-                    IdleTimeout = TimeSpan.FromMinutes(20),
-                    ShutdownTimeLimit = TimeSpan.FromSeconds(90),
-                    StartupTimeLimit = TimeSpan.FromSeconds(90),
-
-                    PingingEnabled = true,
-                    PingInterval = TimeSpan.FromSeconds(30),
-                    PingResponseTime = TimeSpan.FromSeconds(90),
-                    Overwrite = false
-                };
+                    server.Sites.Remove(site);
+                    server.CommitChanges();
+                }
             }
+        }
 
-            public static WebsiteSettings GetWebsiteSettings()
+        public static Site GetWebsite(string name)
+        {
+            using (var serverManager = new ServerManager())
             {
-                WebsiteSettings settings = new WebsiteSettings
+                return serverManager.Sites.FirstOrDefault(x => x.Name == name);
+            }
+        }
+
+        public static void StartWebsite(string name)
+        {
+            using (var server = new ServerManager())
+            {
+                Site site = server.Sites.FirstOrDefault(x => x.Name == name);
+
+                if (site != null)
                 {
-                    Name = "Superman",
-                    PhysicalDirectory = "./Test/",
-                    ApplicationPool = CakeHelper.GetAppPoolSettings(),
-                    ServerAutoStart = true,
-                    Overwrite = false
-                };
-
-                settings.Binding = IISBindings.Http
-                    .SetHostName("superman.web")
-                    .SetIpAddress("*")
-                    .SetPort(80);
-
-                return settings;
-            }
-
-            public static WebFarmSettings GetWebFarmSettings()
-            {
-                return new WebFarmSettings
-                {
-                    Name = "Batman",
-                    Servers = new string[] { "Gotham", "Metroplis" }
-                };
-            }
-
-
-
-            //Website
-            public static void CreateWebsite(WebsiteSettings settings)
-            {
-                WebsiteManager manager = CakeHelper.CreateWebsiteManager();
-
-                manager.Create(settings);
-            }
-
-            public static void DeleteWebsite(string name)
-            {
-                using (var server = new ServerManager())
-                {
-                    var site = server.Sites.FirstOrDefault(x => x.Name == name);
-
-                    if (site != null)
+                    try
                     {
-                        server.Sites.Remove(site);
-                        server.CommitChanges();
+                        site.Start();
+                    }
+                    catch (System.Runtime.InteropServices.COMException)
+                    {
+                        Thread.Sleep(1000);
                     }
                 }
             }
+        }
 
-            public static Site GetWebsite(string name)
+        public static void StopWebsite(string name)
+        {
+            using (var server = new ServerManager())
             {
-                using (var serverManager = new ServerManager())
-                {
-                    return serverManager.Sites.FirstOrDefault(x => x.Name == name);
-                }
-            }
+                Site site = server.Sites.FirstOrDefault(x => x.Name == name);
 
-            public static void StartWebsite(string name)
-            {
-                using (var server = new ServerManager())
+                if (site != null)
                 {
-                    Site site = server.Sites.FirstOrDefault(x => x.Name == name);
-
-                    if (site != null)
+                    try
                     {
-                        try
-                        {
-                            site.Start();
-                        }
-                        catch (System.Runtime.InteropServices.COMException)
-                        {
-                            Thread.Sleep(1000);
-                        }
+                        site.Stop();
+                    }
+                    catch (System.Runtime.InteropServices.COMException)
+                    {
+                        Thread.Sleep(1000);
                     }
                 }
             }
+        }
 
-            public static void StopWebsite(string name)
+        public static void CreatePool(ApplicationPoolSettings settings)
+        {
+            ApplicationPoolManager manager = CakeHelper.CreateApplicationPoolManager();
+
+            manager.Create(settings);
+        }
+
+        public static void DeletePool(string name)
+        {
+            using (var server = new ServerManager())
             {
-                using (var server = new ServerManager())
-                {
-                    Site site = server.Sites.FirstOrDefault(x => x.Name == name);
+                ApplicationPool pool = server.ApplicationPools.FirstOrDefault(x => x.Name == name);
 
-                    if (site != null)
+                if (pool != null)
+                {
+                    server.ApplicationPools.Remove(pool);
+                    server.CommitChanges();
+                }
+            }
+        }
+
+        public static ApplicationPool GetPool(string name)
+        {
+            using (var server = new ServerManager())
+            {
+                return server.ApplicationPools.FirstOrDefault(x => x.Name == name);
+            }
+        }
+
+        public static void StartPool(string name)
+        {
+            using (var server = new ServerManager())
+            {
+                ApplicationPool pool = server.ApplicationPools.FirstOrDefault(x => x.Name == name);
+
+                if (pool != null)
+                {
+                    try
                     {
-                        try
-                        {
-                            site.Stop();
-                        }
-                        catch (System.Runtime.InteropServices.COMException)
-                        {
-                            Thread.Sleep(1000);
-                        }
+                        pool.Start();
+                    }
+                    catch (System.Runtime.InteropServices.COMException)
+                    {
+                        Thread.Sleep(1000);
                     }
                 }
             }
+        }
 
-
-
-            //Pool
-            public static void CreatePool(ApplicationPoolSettings settings)
+        public static void StopPool(string name)
+        {
+            using (var server = new ServerManager())
             {
-                ApplicationPoolManager manager = CakeHelper.CreateApplicationPoolManager();
+                ApplicationPool pool = server.ApplicationPools.FirstOrDefault(x => x.Name == name);
 
-                manager.Create(settings);
-            }
-
-            public static void DeletePool(string name)
-            {
-                using (var server = new ServerManager())
+                if (pool != null)
                 {
-                    ApplicationPool pool = server.ApplicationPools.FirstOrDefault(x => x.Name == name);
-
-                    if (pool != null)
+                    try
                     {
-                        server.ApplicationPools.Remove(pool);
-                        server.CommitChanges();
+                        pool.Stop();
+                    }
+                    catch (System.Runtime.InteropServices.COMException)
+                    {
+                        Thread.Sleep(1000);
                     }
                 }
             }
+        }
 
-            public static ApplicationPool GetPool(string name)
+        public static void CreateWebFarm(WebFarmSettings settings)
+        {
+            WebFarmManager manager = CakeHelper.CreateWebFarmManager();
+
+            manager.Create(settings);
+        }
+
+        public static void DeleteWebFarm(string name)
+        {
+            using (var serverManager = new ServerManager())
             {
-                using (var server = new ServerManager())
+                Configuration config = serverManager.GetApplicationHostConfiguration();
+
+                ConfigurationSection section = config.GetSection("webFarms");
+                ConfigurationElementCollection farms = section.GetCollection();
+
+                ConfigurationElement farm = farms.FirstOrDefault(f => f.GetAttributeValue("name").ToString() == name);
+
+                if (farm != null)
                 {
-                    return server.ApplicationPools.FirstOrDefault(x => x.Name == name);
+                    farms.Remove(farm);
+                    serverManager.CommitChanges();
                 }
             }
+        }
 
-            public static void StartPool(string name)
+        public static ConfigurationElement GetWebFarm(string name)
+        {
+            using (var serverManager = new ServerManager())
             {
-                using (var server = new ServerManager())
-                {
-                    ApplicationPool pool = server.ApplicationPools.FirstOrDefault(x => x.Name == name);
+                Configuration config = serverManager.GetApplicationHostConfiguration();
 
-                    if (pool != null)
-                    {
-                        try
-                        {
-                            pool.Start();
-                        }
-                        catch (System.Runtime.InteropServices.COMException)
-                        {
-                            Thread.Sleep(1000);
-                        }
-                    }
-                }
+                ConfigurationSection section = config.GetSection("webFarms");
+                ConfigurationElementCollection farms = section.GetCollection();
+
+                return farms.FirstOrDefault(f => f.GetAttributeValue("name").ToString() == name);
             }
-
-            public static void StopPool(string name)
-            {
-                using (var server = new ServerManager())
-                {
-                    ApplicationPool pool = server.ApplicationPools.FirstOrDefault(x => x.Name == name);
-
-                    if (pool != null)
-                    {
-                        try
-                        {
-                            pool.Stop();
-                        }
-                        catch (System.Runtime.InteropServices.COMException)
-                        {
-                            Thread.Sleep(1000);
-                        }
-                    }
-                }
-            }
-
-
-
-            //WebFarm
-            public static void CreateWebFarm(WebFarmSettings settings)
-            {
-                WebFarmManager manager = CakeHelper.CreateWebFarmManager();
-
-                manager.Create(settings);
-            }
-
-            public static void DeleteWebFarm(string name)
-            {
-                using (var serverManager = new ServerManager())
-                {
-                    Configuration config = serverManager.GetApplicationHostConfiguration();
-
-                    ConfigurationSection section = config.GetSection("webFarms");
-                    ConfigurationElementCollection farms = section.GetCollection();
-
-                    ConfigurationElement farm = farms.FirstOrDefault(f => f.GetAttributeValue("name").ToString() == name);
-
-                    if (farm != null)
-                    {
-                        farms.Remove(farm);
-                        serverManager.CommitChanges();
-                    }
-                }
-            }
-
-            public static ConfigurationElement GetWebFarm(string name)
-            {
-                using (var serverManager = new ServerManager())
-                {
-                    Configuration config = serverManager.GetApplicationHostConfiguration();
-
-                    ConfigurationSection section = config.GetSection("webFarms");
-                    ConfigurationElementCollection farms = section.GetCollection();
-
-                    return farms.FirstOrDefault(f => f.GetAttributeValue("name").ToString() == name);
-                }
-            }
-        #endregion
+        }
     }
 }

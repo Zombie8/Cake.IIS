@@ -1,13 +1,13 @@
-﻿namespace Cake.IIS
+﻿using Cake.IIS.Bindings;
+
+namespace Cake.IIS.Settings
 {
     public class FtpsiteSettings : SiteSettings
     {
-        #region Constructor (1)
-            public FtpsiteSettings()
-                : base()
-            {
-                this.Binding = IISBindings.Ftp;
-            }
-        #endregion
+        public FtpsiteSettings()
+            : base()
+        {
+            this.Binding = IISBindings.Ftp;
+        }
     }
 }

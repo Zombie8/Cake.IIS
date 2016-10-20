@@ -1,9 +1,8 @@
-﻿#region Using Statements
-    using Microsoft.Web.Administration;
-    using Xunit;
-#endregion
+﻿using Microsoft.Web.Administration;
+using Xunit;
 
-
+using Cake.IIS.Bindings;
+using Cake.IIS.Managers;
 
 namespace Cake.IIS.Tests
 {
@@ -91,7 +90,6 @@ namespace Cake.IIS.Tests
         }
 
         [Fact]
-
         public void Should_Delete_Website()
         {
             // Arrange

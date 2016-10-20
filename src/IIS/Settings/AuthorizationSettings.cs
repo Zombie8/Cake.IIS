@@ -1,35 +1,23 @@
-﻿namespace Cake.IIS
+﻿namespace Cake.IIS.Settings
 {
     public class AuthorizationSettings
     {
-        #region Constructor (1)
-            public AuthorizationSettings()
-            {
-                this.AuthorizationType = AuthorizationType.AllUsers;
+        public AuthorizationSettings()
+        {
+            this.AuthorizationType = AuthorizationType.AllUsers;
 
-                this.CanRead           = true;
-                this.CanWrite          = true;
-            }
-        #endregion
+            this.CanRead = true;
+            this.CanWrite = true;
+        }
 
+        public AuthorizationType AuthorizationType { get; set; }
 
+        public string[] Users { get; set; }
 
+        public string[] Roles { get; set; }
 
+        public bool CanRead { get; set; }
 
-        #region Properties (5)
-            public AuthorizationType AuthorizationType { get; set; }
-
-
-
-            public string[] Users { get; set; }
-
-            public string[] Roles { get; set; }
-
-
-
-            public bool CanRead { get; set; }
-
-            public bool CanWrite { get; set; }
-        #endregion
+        public bool CanWrite { get; set; }
     }
 }
