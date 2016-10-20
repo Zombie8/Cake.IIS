@@ -482,7 +482,7 @@ namespace Cake.IIS
 
                 if (string.IsNullOrWhiteSpace(settings.ApplicationPath))
                 {
-                    throw new ArgumentException("Applicaiton path cannot be null!");
+                    throw new ArgumentException("Application path cannot be null!");
                 }
 
 
@@ -558,7 +558,7 @@ namespace Cake.IIS
 
                 if (string.IsNullOrWhiteSpace(settings.ApplicationPath))
                 {
-                    throw new ArgumentException("Applicaiton path cannot be null!");
+                    throw new ArgumentException("Application path cannot be null!");
                 }
 
 
